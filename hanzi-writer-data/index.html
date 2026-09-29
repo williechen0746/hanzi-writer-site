@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hanzi Writer 演示</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f7fa;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 30px;
+      font-size: 28px;
+    }
+    .controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .controls input {
+      padding: 10px 20px;
+      font-size: 24px;
+      border: 2px solid #3498db;
+      border-radius: 8px;
+      text-align: center;
+      width: 120px;
+      outline: none;
+    }
+    .controls button {
+      padding: 10px 25px;
+      font-size: 16px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .controls button:hover { background: #2980b9; }
+    .demos {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .demo-section {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .demo-section h2 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+      font-size: 18px;
+    }
+    #character-box {
+      width: 200px;
+      height: 200px;
+      border: 3px dashed #3498db;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    #quiz-box {
+      width: 200px;
+      height: 200px;
+      border: 3px solid #e74c3c;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .btn-animate {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn-reset {
+      background: #95a5a6;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn-animate:hover { background: #2980b9; }
+    .btn-reset:hover { background: #7f8c8d; }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 15px;
+      color: #555;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🖌️ Hanzi Writer 汉字书写动画演示</h1>
+  
+  <div class="controls">
+    <input type="text" id="charInput" value="我" maxlength="1" placeholder="输入汉字">
+    <button onclick="updateCharacter()">更新</button>
+  </div>
+
+  <div class="demos">
+    <div class="demo-section">
+      <h2>📖 笔画动画</h2>
+      <div id="character-box"></div>
+      <label class="checkbox-label">
+        <input type="checkbox" id="showOutline" checked onchange="updateOptions()">
+        显示轮廓
+      </label>
+      <div class="btn-group">
+        <button class="btn-animate" onclick="animateCharacter()">▶ 播放动画</button>
+        <button class="btn-reset" onclick="resetCharacter()">↻ 重置</button>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h2>✏️ 书写练习</h2>
+      <div id="quiz-box"></div>
+      <label class="checkbox-label">
+        <input type="checkbox" id="quizOutline" checked onchange="updateQuizOptions()">
+        显示轮廓
+      </label>
+      <div class="btn-group">
+        <button class="btn-reset" onclick="resetQuiz()">↻ 重置</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="hanzi-writer.min.js"></script>
+  <script>
+    let writer = null;
+    let quizWriter = null;
+    let currentChar = '我';
+
+    function initWriters() {
+      // 动画演示
+      if (writer) writer = null;
+      writer = HanziWriter.create('character-box', currentChar, {
+        width: 180,
+        height: 180,
+        padding: 10,
+        showOutline: document.getElementById('showOutline').checked,
+        strokeColor: '#2c3e50',
+        outlineColor: '#d5d8dc',
+        drawingColor: '#e74c3c',
+        showCharacter: false
+      });
+
+      // 书写练习
+      if (quizWriter) quizWriter = null;
+      quizWriter = HanziWriter.create('quiz-box', currentChar, {
+        width: 180,
+        height: 180,
+        padding: 10,
+        showOutline: document.getElementById('quizOutline').checked,
+        strokeColor: '#2c3e50',
+        outlineColor: '#d5d8dc',
+        drawingColor: '#e74c3c',
+        showCharacter: false,
+        onComplete: function(data) {
+          console.log('书写完成!', data);
+        }
+      });
+    }
+
+    function updateCharacter() {
+      currentChar = document.getElementById('charInput').value.trim() || '我';
+      initWriters();
+    }
+
+    function animateCharacter() {
+      if (writer) {
+        writer.animateCharacter();
+      }
+    }
+
+    function resetCharacter() {
+      if (writer) {
+        writer.hideCharacter();
+        writer.showOutline();
+      }
+    }
+
+    function resetQuiz() {
+      if (quizWriter) {
+        quizWriter.hideCharacter();
+        quizWriter.showOutline();
+        quizWriter.removeAnimation();
+      }
+    }
+
+    function updateOptions() {
+      if (writer) {
+        writer.updateOptions({
+          showOutline: document.getElementById('showOutline').checked
+        });
+      }
+    }
+
+    function updateQuizOptions() {
+      if (quizWriter) {
+        quizWriter.updateOptions({
+          showOutline: document.getElementById('quizOutline').checked
+        });
+      }
+    }
+
+    // 初始化
+    initWriters();
+    
+    // 3秒后自动播放动画
+    setTimeout(() => {
+      animateCharacter();
+    }, 500);
+  </script>
+</body>
+</html>
